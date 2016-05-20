@@ -92,6 +92,6 @@ def beginMonitor(t_filename):
 
 
 if __name__ == '__main__':
-    beginMonitor('test_process.py')
+    beginMonitor('../app.py')
 
 

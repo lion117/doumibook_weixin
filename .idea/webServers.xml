@@ -3,7 +3,7 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="9b0d13a5-7f49-49ec-a385-eda30f895169" name="ngixpro" url="http://ngixpro.com">
-        <fileTransfer host="ngixpro.com" port="2121" password="dfe6dfc3dfc5dfc4dfc0dfc1dfc6df91" username="admin">
+        <fileTransfer host="ngixpro.com" port="2121" password="dfc6dfc3dfc5dfc4dfc0dfc1dfc6df91" username="admin">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" />
           </advancedOptions>

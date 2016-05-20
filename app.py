@@ -47,7 +47,7 @@ def verification(request):
     timestamp = request.args.get('timestamp')
     nonce = request.args.get('nonce')
 
-    token = 'doumi' #注意要与微信公众帐号平台上填写一致
+    token = 'ngixpro' #注意要与微信公众帐号平台上填写一致
     tmplist = [token, timestamp, nonce]
     tmplist.sort()
     tmpstr = ''.join(tmplist)
@@ -179,3 +179,8 @@ def response_text_msg(msg, content):
 
 if __name__ == '__main__':
     app.run()
+    # i_index =0
+    # while(True):
+    #     i_index = i_index +1
+    #     print  i_index
+    #     time.sleep(1)

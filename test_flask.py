@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask, request, render_template
-import wechat_sdk
+from wechat_sdk import WechatConf , WechatBasic
 
 
 import hashlib, urllib, urllib2, re, time, json
@@ -18,11 +18,21 @@ app.debug = True
 app.secret_key = APP_SECRET_KEY
 
 
+conf = WechatConf(
+    token='ngixpro',
+    appid='wx38fb2e32db95d3be',
+    appsecret='your_appsecret',
+    encrypt_mode='normal',  # 可选项：normal/compatible/safe，分别对应于 明文/兼容/安全 模式
+    encoding_aes_key='NSPdPctnDzrXRfWr11zAo65xqsXx3ynR6xgyO3FflGg'  # 如果传入此值则必须保证同时传入 token, appid
+)
+
+py_wechat = WechatBasic(conf=conf)
+
+
 
 #homepage just for fun
 @app.route('/')
 def home():
-    # return  'hello world'
     return render_template('index.html')
 
 
@@ -40,23 +50,30 @@ def weixin_access_verify():
 
 
 
-#来自微信服务器的消息推送
-# @app.route('/weixin', methods=['POST'])
-# def weixin_msg():
-#     if verification(request):
-#         data = request.data
-#         msg = parse_msg(data)
-#         if user_subscribe_event(msg):
-#             return help_info(msg)
-#         elif is_text_msg(msg):
-#             content = msg['Content']
-#             if content == u'?' or content == u'？':
-#                 return help_info(msg)
-#             else:
-#                 books = search_book(content)
-#                 rmsg = response_news_msg(msg, books)
-#                 return rmsg
-#     return 'message processing fail'
+# 来自微信服务器的消息推送
+@app.route('/weixin', methods=['POST'])
+def weixin_msg():
+    if verification(request):
+        data = request.data
+        py_wechat.parse_data(data)
+        # 获得解析结果, message 为 WechatMessage 对象 (wechat_sdk.messages中定义)
+        message = py_wechat.get_message()
+        response = None
+        if message.type == 'text':
+            if message.content == 'wechat':
+                response = py_wechat.response_text(u'^_^')
+            elif message.content == u"新闻":
+                response = respon_news()
+
+            else:
+                response = py_wechat.response_text(u'文字')
+        elif message.type == 'image':
+            response = py_wechat.response_text(u'图片')
+        else:
+            response = py_wechat.response_text(u'未知')
+
+        return  response
+
 
 
 #接入和消息推送都需要做校验
@@ -65,15 +82,32 @@ def verification(request):
     timestamp = request.args.get('timestamp')
     nonce = request.args.get('nonce')
 
-    token = 'doumi' #注意要与微信公众帐号平台上填写一致
-    tmplist = [token, timestamp, nonce]
-    tmplist.sort()
-    tmpstr = ''.join(tmplist)
-    hashstr = hashlib.sha1(tmpstr).hexdigest()
-
-    if hashstr == signature:
+    if py_wechat.check_signature(signature=signature , timestamp=timestamp ,nonce= nonce):
         return True
     return False
+
+
+
+def respon_news():
+    response = py_wechat.response_news([
+        {
+            'title': u'测试网页',
+            'description': u'第一条新闻描述，这条新闻没有预览图',
+            'url': u'http://www.google.com.hk/',
+        }, {
+            'title': u'文件1',
+            'description': u'今天你吃饭了吗, 这是第一次打通为微信公众平台, 这是我需要尽快完成的工作',
+            'picurl': u'http://www.diyifanwen.com/Files/BeyondPic/2008-10/20/08102023231459334.jpg',
+            'url': u'http://www.github.com/',
+        }, {
+            'title': u'新闻2标题',
+            'description': u'今天你吃饭了吗, 这是第一次打通为微信公众平台, 这是我需要尽快完成的工作',
+            'picurl': u'http://www.diyifanwen.com/Files/BeyondPic/2008-10/20/0810202314086125.jpg',
+            'url': u'http://bbs.jointforce.com/forum.php?mod=viewthread&tid=16623&extra=page%3D1',
+        }
+    ])
+
+    return  response
 
 
 # #将消息解析为dict
@@ -210,4 +244,4 @@ def verification(request):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0' , port=80)
+    app.run(host='localhost' , port=80)
