@@ -3,7 +3,7 @@
 
 from flask import Flask, request, render_template
 from wechat_sdk import WechatConf , WechatBasic
-
+from wechat_sdk.exceptions import OfficialAPIError
 
 import hashlib, urllib, urllib2, re, time, json
 import xml.etree.ElementTree as ET
@@ -26,9 +26,47 @@ conf = WechatConf(
     encoding_aes_key='NSPdPctnDzrXRfWr11zAo65xqsXx3ynR6xgyO3FflGg'  # 如果传入此值则必须保证同时传入 token, appid
 )
 
+menu_info = {
+    'button': [
+        {
+            'type': 'click',
+            'name': '今日歌曲',
+            'key': 'V1001_TODAY_MUSIC'
+        },
+        {
+            'type': 'click',
+            'name': '歌手简介',
+            'key': 'V1001_TODAY_SINGER'
+        },
+        {
+            'name': '菜单',
+            'sub_button': [
+                {
+                    'type': 'view',
+                    'name': '搜索',
+                    'url': 'http://www.soso.com/'
+                },
+                {
+                    'type': 'view',
+                    'name': '视频',
+                    'url': 'http://v.qq.com/'
+                },
+                {
+                    'type': 'click',
+                    'name': '赞一下我们',
+                    'key': 'V1001_GOOD'
+                }
+            ]
+        }
+    ]
+}
+
+
 py_wechat = WechatBasic(conf=conf)
-
-
+try:
+    py_wechat.create_menu(menu_info)
+except OfficialAPIError , ex :
+    print ex
 
 #homepage just for fun
 @app.route('/')
@@ -64,6 +102,8 @@ def weixin_msg():
                 response = py_wechat.response_text(u'^_^')
             elif message.content == u"新闻":
                 response = respon_news()
+            # elif message.content == u"menu":
+            #     response = create_menu()
 
             else:
                 response = py_wechat.response_text(u'文字')
@@ -108,6 +148,12 @@ def respon_news():
     ])
 
     return  response
+
+
+def create_menu():
+    resp = py_wechat.create_menu(menu_info)
+    return resp
+
 
 
 # #将消息解析为dict
